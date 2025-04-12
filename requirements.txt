@@ -1,0 +1,4 @@
+nextcord
+PyNaCl
+requests
+random
