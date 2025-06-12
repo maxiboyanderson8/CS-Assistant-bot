@@ -262,17 +262,27 @@ async def support_log(
         await interaction.response.send_message("❌ An error occurred while logging the support ticket.", ephemeral=True)
 
 
+
 # INFRACT SLASH COMMAND --------------------------------------------------------------------------------
 @client.slash_command(guild_ids=[GUILD_ID], description="Issue an infraction")
-@commands.has_role("Executive Board")
-@commands.has_role("Department of Directors")
-@commands.has_role("Management")
 async def infract(
     interaction: Interaction,
-    infraction: str = SlashOption(description="Type of infraction", required=True, choices=["Strike", "Termination Warning", "Termination"]),
+    infraction: str = SlashOption(
+        description="Type of infraction",
+        required=True,
+        choices=["Strike", "Termination Warning", "Termination"]
+    ),
     username: nextcord.Member = SlashOption(description="User to infract", required=True),
     reason: str = SlashOption(description="Reason for infraction", required=True),
-    ):
+):
+    # List of allowed role IDs
+    allowed_roles = {1302761965277544448, 1108029461967945850, 1309883023008989265}
+    
+    # Check if user has any of the allowed roles
+    if not any(role.id in allowed_roles for role in interaction.user.roles):
+        await interaction.response.send_message("❌ You don’t have permission to use this command.", ephemeral=True)
+        return
+
     try:
         # Create embed message
         embed = nextcord.Embed(title=f"<:CD_Red:1108401228720918538> {infraction}", color=0xff0808)
@@ -280,27 +290,33 @@ async def infract(
         embed.add_field(name="<:CD_dot:1310207495691567145> Username", value=username.mention, inline=False)
         embed.add_field(name="<:CD_dot:1310207495691567145> Reason", value=reason, inline=False)
         embed.set_footer(text=f"Authorised by {interaction.user.display_name}", icon_url=interaction.user.avatar.url)
-        
+
         # Send embed message in the infraction channel
         infraction_channel = client.get_channel(INFRACTION_ID)
         if infraction_channel:
             await infraction_channel.send(content=f"{username.mention}", embed=embed)
-            await interaction.response.send_message("Infraction has been successfully logged.", ephemeral=True)
+            await interaction.response.send_message("✅ Infraction has been successfully logged.", ephemeral=True)
         else:
-            await interaction.response.send_message("Infraction channel not found.", ephemeral=True)
+            await interaction.response.send_message("⚠️ Infraction channel not found.", ephemeral=True)
+
         # DM the user
-        dm_message = f"Infraction: {infraction}\nUsername: {username.mention}\nReason: {reason}\nAuthorised by: {interaction.user.display_name}"
+        dm_message = (
+            f"**Infraction:** {infraction}\n"
+            f"**Username:** {username.mention}\n"
+            f"**Reason:** {reason}\n"
+            f"**Authorised by:** {interaction.user.display_name}"
+        )
         await username.send(dm_message)
+
     except Exception as e:
+        import logging
         logging.error(f"Error in infract command: {e}")
-        await interaction.response.send_message("An error occurred while issuing the infraction.", ephemeral=True)
+        await interaction.response.send_message("❌ An error occurred while issuing the infraction.", ephemeral=True)
 
 
 
 # OUTLET SLASH COMMAND --------------------------------------------------------------------------------
 @client.slash_command(guild_ids=[GUILD_ID], description="Create an outlet post")
-@commands.has_role("Executive Board")
-@commands.has_role("Department of Directors")
 async def outlet(
     interaction: Interaction,
     thread: nextcord.Thread = SlashOption(description="Thread to send the message", required=True),
@@ -314,36 +330,43 @@ async def outlet(
     enable_button3: bool = SlashOption(description="Enable Website button", required=True, choices=[True, False])
 ):
     try:
-        # Split the product images URLs
-        image_urls = product_images.split(',')
+        # Role ID check
+        allowed_role_ids = {1302761965277544448, 1108029461967945850}
+        user_role_ids = {role.id for role in interaction.user.roles}
+        if not allowed_role_ids.intersection(user_role_ids):
+            await interaction.response.send_message("❌ You don't have permission to use this command.", ephemeral=True)
+            return
 
-        # Create embeds for each image
-        embeds = [nextcord.Embed(color=0xff913a).set_image(url=url.strip()) for url in image_urls]
+        # Parse image URLs
+        image_urls = [url.strip() for url in product_images.split(',')]
 
-        # Second embed with product details
-        embed_details = nextcord.Embed(title=f"<:CD_cart:1310206827946049546> {product_name}", description=f"<:CD_Info:1310206627466711140> {description}", color=0xff913a)
+        # Embed for each image
+        embeds = [nextcord.Embed(color=0xff913a).set_image(url=url) for url in image_urls]
+
+        # Add final embed with product info
+        embed_details = nextcord.Embed(
+            title=f"<:CD_cart:1310206827946049546> {product_name}",
+            description=f"<:CD_Info:1310206627466711140> {description}",
+            color=0xff913a
+        )
         embed_details.set_image(url="https://media.discordapp.net/attachments/1110779991626629252/1312520876239097876/Sin_titulo_72_x_9_in_72_x_5_in_1_1.png?ex=674ccbd2&is=674b7a52&hm=f6228f89e71982bdbcd236455249a0f0fba8796855434204803f0d108e8c7157&=&format=webp&quality=lossless&width=1439&height=100")
         embed_details.add_field(name="Price", value=f"<:CD_robux:1310207300522213507> {price}", inline=False)
         embed_details.set_footer(text=f"{type_of_product}")
         embeds.append(embed_details)
 
-        # Create buttons
-        button1 = Button(label="Purchasing Hub", url="https://www.roblox.com/games/83015037950675/Comet-Designs-Purchasing-Hub", disabled=not enable_button1)
-        button2 = Button(label="Packables", url="https://packables.store/652a9f90c7a0a2091d0a906e", disabled=not enable_button2)
-        button3 = Button(label="Website", url="https://cometdesigns.co.uk/collection/home-page", disabled=not enable_button3)
-
-        # Create view and add buttons
+        # Create button view
         view = View()
-        view.add_item(button1)
-        view.add_item(button2)
-        view.add_item(button3)
+        view.add_item(Button(label="Purchasing Hub", url="https://www.roblox.com/games/83015037950675/Comet-Designs-Purchasing-Hub", disabled=not enable_button1))
+        view.add_item(Button(label="Packables", url="https://packables.store/652a9f90c7a0a2091d0a906e", disabled=not enable_button2))
+        view.add_item(Button(label="Website", url="https://cometdesigns.co.uk/collection/home-page", disabled=not enable_button3))
 
-        # Send the embeds and buttons in the specified thread
+        # Post to thread
         await thread.send(embeds=embeds, view=view)
-        await interaction.response.send_message("Outlet post created successfully!", ephemeral=True)
+        await interaction.response.send_message("✅ Outlet post created successfully!", ephemeral=True)
+
     except Exception as e:
         logging.error(f"Error in outlet command: {e}")
-        await interaction.response.send_message("An error occurred while creating the outlet post.", ephemeral=True)
+        await interaction.response.send_message("❌ An error occurred while creating the outlet post.", ephemeral=True)
 
 
 # TAX CALCULATOR SLASH COMMAND --------------------------------------------------------------------------------
