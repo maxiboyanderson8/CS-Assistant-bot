@@ -110,7 +110,7 @@ def save_support_logs():
 def save_linked_accounts():
     with open(LINKED_ACCOUNTS_FILE, 'w') as file:
         json.dump(linked_accounts, file)
-        
+
 # REVIEW SLASH COMMAND --------------------------------------------------------------------------------
 @client.slash_command(guild_ids=[GUILD_ID], description="Submit a review")
 async def review(
@@ -260,7 +260,6 @@ async def support_log(
     except Exception as e:
         logging.error(f"Error in support_log command: {e}")
         await interaction.response.send_message("❌ An error occurred while logging the support ticket.", ephemeral=True)
-
 
 
 # INFRACT SLASH COMMAND --------------------------------------------------------------------------------
@@ -668,7 +667,6 @@ async def remove_staff(
     else:
         await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
 # ==========================================================================
-
 
 import requests
 import logging
