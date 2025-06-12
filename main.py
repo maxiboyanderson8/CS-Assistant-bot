@@ -425,14 +425,18 @@ random_complement_messages = [
 
 # SUPPORTER SLASH COMMAND --------------------------------------------------------------------------------
 @client.slash_command(guild_ids=[GUILD_ID], description="Acknowledge a supporter")
-@commands.has_role("Executive Board")
-@commands.has_role("Department of Directors")
 async def supporter(
     interaction: Interaction,
     option: str = SlashOption(description="Select an option", required=True, choices=["Donator", "Comet+"]),
     user: nextcord.Member = SlashOption(description="User to acknowledge", required=True),
     amount: float = SlashOption(description="Amount donated", required=False)
 ):
+    allowed_role_ids = {1302761965277544448, 1108029461967945850, 1309883023008989265}
+    user_role_ids = {role.id for role in interaction.user.roles}
+    if not allowed_role_ids.intersection(user_role_ids):
+        await interaction.response.send_message("❌ You don't have permission to use this command.", ephemeral=True)
+        return
+
     try:
         embed = nextcord.Embed(color=0xff913a)
         random_complement_message = random.choice(random_complement_messages)
@@ -448,7 +452,6 @@ async def supporter(
             embed.title = "Comet+? Nice choice!"
             embed.description = f"<:CD_partner:1310207556903501844> {user.mention} purchased <@&1309926380624150528>, {random_complement_message}"
 
-        # Send embed message in the supporters channel
         supporters_channel = client.get_channel(SUPPORTERS_ID)
         if supporters_channel:
             await supporters_channel.send(embed=embed)
@@ -458,6 +461,7 @@ async def supporter(
     except Exception as e:
         logging.error(f"Error in supporter command: {e}")
         await interaction.response.send_message("An error occurred while acknowledging the supporter.", ephemeral=True)
+
 
 # DEMOTION SLASH COMMAND --------------------------------------------------------------------------------
 @client.slash_command(guild_ids=[GUILD_ID], description="Demote a user")
@@ -472,11 +476,9 @@ async def demotion(
     allowed_roles = {EXECUTIVE, DIRECTOR}
     if any(role.id in allowed_roles for role in interaction.user.roles):
         try:
-            # Add new role and remove old role
             await username.add_roles(new_rank)
             await username.remove_roles(old_rank)
-            
-            # Create embed message
+
             embed = nextcord.Embed(
                 title="<:CD_Red:1108401228720918538> DEMOTION",
                 description=(
@@ -489,20 +491,17 @@ async def demotion(
             )
             embed.set_footer(text=f"Authorised by {interaction.user.display_name}", icon_url=interaction.user.avatar.url)
             embed.set_image(url="https://media.discordapp.net/attachments/1307830607262384128/1323349902935457965/Sin_titulo_72_x_9_in_72_x_5_in_1_1.png?ex=67743123&is=6772dfa3&hm=d8ee04b95368ed3c3172a30f26c2ceed5de2d43b034d523f095cc583a2695e5e&=&format=webp&quality=lossless&width=756&height=52")
-            
-            # Add proof image if provided
+
             if proof:
                 embed.set_image(url=proof)
-            
-            # Send embed message in the demotion channel
+
             demotion_channel = client.get_channel(1309857105745936515)
             if demotion_channel:
                 await demotion_channel.send(embed=embed)
                 await interaction.response.send_message("Demotion has been successfully logged.", ephemeral=True)
             else:
                 await interaction.response.send_message("Demotion channel not found.", ephemeral=True)
-            
-            # Send DM to the user
+
             await username.send(embed=embed)
         except Exception as e:
             logging.error(f"Error in demotion command: {e}")
@@ -510,37 +509,38 @@ async def demotion(
     else:
         await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
 
+
 # PROMOTION SLASH COMMAND --------------------------------------------------------------------------------
 @client.slash_command(guild_ids=[GUILD_ID], description="Promote a user")
-@commands.has_role("Executive Board")
-@commands.has_role("Department of Directors")
 async def promotion(
     interaction: Interaction,
     username: nextcord.Member = SlashOption(description="User to Promote", required=True),
     new_rank: nextcord.Role = SlashOption(description="New rank", required=True),
     reason: str = SlashOption(description="Reason", required=True)
 ):
+    allowed_role_ids = {1302761965277544448, 1108029461967945850}
+    user_role_ids = {role.id for role in interaction.user.roles}
+    if not allowed_role_ids.intersection(user_role_ids):
+        await interaction.response.send_message("❌ You don't have permission to use this command.", ephemeral=True)
+        return
+
     try:
-        # Add new role and remove old role
         await username.add_roles(new_rank)
-        
-        # Create embed message
+
         embed = nextcord.Embed(title="<:CD_Light:1310205970596499487> Promotion", color=0xff913a)
         embed.set_image(url="https://media.discordapp.net/attachments/1110779991626629252/1312520876239097876/Sin_titulo_72_x_9_in_72_x_5_in_1_1.png?ex=674ccbd2&is=674b7a52&hm=f6228f89e71982bdbcd236455249a0f0fba8796855434204803f0d108e8c7157&=&format=webp&quality=lossless&width=1439&height=100")
         embed.add_field(name="<:CD_dot:1310207495691567145> Username", value=username.mention, inline=True)
         embed.add_field(name="<:CD_dot:1310207495691567145> New Rank", value=new_rank.mention, inline=True)
         embed.add_field(name="<:CD_dot:1310207495691567145> Reason", value=reason, inline=False)
         embed.set_footer(text=f"Authorised by {interaction.user.display_name}", icon_url=interaction.user.avatar.url)
-        
-        # Send embed message in the promotion channel
+
         promotion_channel = client.get_channel(PROMOTION_ID)
         if promotion_channel:
             await promotion_channel.send(embed=embed)
             await interaction.response.send_message("Promotion has been successfully logged.", ephemeral=True)
         else:
             await interaction.response.send_message("Promotion channel not found.", ephemeral=True)
-        
-        # Send DM to the user
+
         await username.send(embed=embed)
     except Exception as e:
         logging.error(f"Error in promotion command: {e}")
@@ -563,110 +563,110 @@ from datetime import datetime
 
 # ADD STAFF SLASH COMMAND --------------------------------------------------------------------------------
 @client.slash_command(guild_ids=[GUILD_ID], description="Add a new staff member")
-@commands.has_role("Executive Board")
-@commands.has_role("Department of Directors")
-@commands.has_role("Management")
 async def add_staff(
     interaction: Interaction,
     user: nextcord.Member = SlashOption(description="User to add", required=True),
-    category: str = SlashOption(description="Category", required=True, choices=["Creative Team", "Marketing Team", "Support Team","Management", "Department of Directors", "Executive Board"]),
+    category: str = SlashOption(description="Category", required=True, choices=["Creative Team", "Marketing Team", "Support Team","Management", "Board of Directors", "Executive Board"]),
     roblox_username: str = SlashOption(description="Roblox Username", required=True)
 ):
-    try:
-        with open(STAFF_DATABASE_FILE, 'r+') as file:
-            staff_database = json.load(file)
-            if any(member["Username"] == str(user) for member in staff_database):
-                await interaction.response.send_message("This user already exists in the database.", ephemeral=True)
-                return
+    allowed_roles = {1302761965277544448, 1108029461967945850, 1309883023008989265}
+    if any(role.id in allowed_roles for role in interaction.user.roles):
+        try:
+            with open(STAFF_DATABASE_FILE, 'r+') as file:
+                staff_database = json.load(file)
+                if any(member["Username"] == str(user) for member in staff_database):
+                    await interaction.response.send_message("This user already exists in the database.", ephemeral=True)
+                    return
 
-            date_of_joining = datetime.now().strftime("%d/%m/%Y")
-            staff_member = {
-                "Username": str(user),
-                "Roblox Username": roblox_username,
-                "Category": category,
-                "Date of Joining": date_of_joining
-            }
-            staff_database.append(staff_member)
-            file.seek(0)
-            json.dump(staff_database, file, indent=4)
+                date_of_joining = datetime.now().strftime("%d/%m/%Y")
+                staff_member = {
+                    "Username": str(user),
+                    "Roblox Username": roblox_username,
+                    "Category": category,
+                    "Date of Joining": date_of_joining
+                }
+                staff_database.append(staff_member)
+                file.seek(0)
+                json.dump(staff_database, file, indent=4)
 
-        embed = nextcord.Embed(title="Staff Member Added", color=0xff913a)
-        embed.add_field(name="<:CD_member:1337489055889227876> Username", value=user.mention, inline=False)
-        embed.add_field(name="<:CD_roblox:1310207355002159175> Roblox Username", value=roblox_username, inline=False)
-        embed.add_field(name="<:CD_bag:1310235389126115349> Category", value=category, inline=False)
-        embed.add_field(name="<:CD_dot:1310207495691567145> Date of Joining", value=date_of_joining, inline=False)
-        embed.set_image(url="https://media.discordapp.net/attachments/1307830607262384128/1308444839905595392/Sin_titulo_50_x_8_in_4.png?ex=6791aef7&is=67905d77&hm=a7d9123dc9d275e26f2debd9543d04d01847210112577da4afedd3652f3c088c&=&format=webp&quality=lossless&width=1439&height=173")
+            embed = nextcord.Embed(title="Staff Member Added", color=0xff913a)
+            embed.add_field(name="<:CD_member:1337489055889227876> Username", value=user.mention, inline=False)
+            embed.add_field(name="<:CD_roblox:1310207355002159175> Roblox Username", value=roblox_username, inline=False)
+            embed.add_field(name="<:CD_bag:1310235389126115349> Category", value=category, inline=False)
+            embed.add_field(name="<:CD_dot:1310207495691567145> Date of Joining", value=date_of_joining, inline=False)
+            embed.set_image(url="https://media.discordapp.net/attachments/1307830607262384128/1308444839905595392/Sin_titulo_50_x_8_in_4.png?ex=6791aef7&is=67905d77&hm=a7d9123dc9d275e26f2debd9543d04d01847210112577da4afedd3652f3c088c&=&format=webp&quality=lossless&width=1439&height=173")
 
-        await interaction.response.send_message(embed=embed, ephemeral=False)
-    except Exception as e:
-        logging.error(f"Error in add_staff command: {e}")
-        await interaction.response.send_message("An error occurred while adding the staff member.", ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=False)
+        except Exception as e:
+            logging.error(f"Error in add_staff command: {e}")
+            await interaction.response.send_message("An error occurred while adding the staff member.", ephemeral=True)
+    else:
+        await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
 
 # UPDATE STAFF SLASH COMMAND --------------------------------------------------------------------------------
 @client.slash_command(guild_ids=[GUILD_ID], description="Update a staff member's information")
-@commands.has_role("Executive Board")
-@commands.has_role("Department of Directors")
-@commands.has_role("Management")
 async def update_staff(
     interaction: Interaction,
     user: nextcord.Member = SlashOption(description="User to update", required=True),
     update_date_of_joining: str = SlashOption(description="New Date of Joining (DD/MM/YYYY)", required=False),
-    update_category: str = SlashOption(description="New Category", required=False, choices=["Creative Team", "Marketing Team", "Support Team", "Management", "Department of Directors", "Executive Board"]),
+    update_category: str = SlashOption(description="New Category", required=False, choices=["Creative Team", "Marketing Team", "Support Team", "Management", "Board of Directors", "Executive Board"]),
     update_roblox_username: str = SlashOption(description="New Roblox Username", required=False)
 ):
-    try:
-        # Load the staff database
-        with open(STAFF_DATABASE_FILE, 'r+') as file:
-            staff_database = json.load(file)
-            staff_member = next((member for member in staff_database if member["Username"] == str(user)), None)
+    allowed_roles = {1302761965277544448, 1108029461967945850, 1309883023008989265}
+    if any(role.id in allowed_roles for role in interaction.user.roles):
+        try:
+            with open(STAFF_DATABASE_FILE, 'r+') as file:
+                staff_database = json.load(file)
+                staff_member = next((member for member in staff_database if member["Username"] == str(user)), None)
 
-            if not staff_member:
-                await interaction.response.send_message("Staff member not found.", ephemeral=True)
-                return
+                if not staff_member:
+                    await interaction.response.send_message("Staff member not found.", ephemeral=True)
+                    return
 
-            # Update the staff member's details
-            if update_date_of_joining:
-                staff_member["Date of Joining"] = update_date_of_joining
-            if update_category:
-                staff_member["Category"] = update_category
-            if update_roblox_username:
-                staff_member["Roblox Username"] = update_roblox_username
+                if update_date_of_joining:
+                    staff_member["Date of Joining"] = update_date_of_joining
+                if update_category:
+                    staff_member["Category"] = update_category
+                if update_roblox_username:
+                    staff_member["Roblox Username"] = update_roblox_username
 
-            # Save the updated staff database
-            file.seek(0)
-            file.truncate()
-            json.dump(staff_database, file, indent=4)
+                file.seek(0)
+                file.truncate()
+                json.dump(staff_database, file, indent=4)
 
-        await interaction.response.send_message(f"Information updated for {user.mention}", ephemeral=True)
-    except Exception as e:
-        logging.error(f"Error in update_staff command: {e}")
-        await interaction.response.send_message("An error occurred while updating the staff member.", ephemeral=True)
+            await interaction.response.send_message(f"Information updated for {user.mention}", ephemeral=True)
+        except Exception as e:
+            logging.error(f"Error in update_staff command: {e}")
+            await interaction.response.send_message("An error occurred while updating the staff member.", ephemeral=True)
+    else:
+        await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
 
 # REMOVE STAFF SLASH COMMAND --------------------------------------------------------------------------------
 @client.slash_command(guild_ids=[GUILD_ID], description="Remove a staff member")
-@commands.has_role("Executive Board")
-@commands.has_role("Department of Directors")
-@commands.has_role("Management")
 async def remove_staff(
     interaction: Interaction,
     user: nextcord.Member = SlashOption(description="User to remove", required=True)
 ):
-    try:
-        with open(STAFF_DATABASE_FILE, 'r+') as file:
-            staff_database = json.load(file)
-            staff_database = [member for member in staff_database if member["Username"] != str(user)]
-            file.seek(0)
-            file.truncate()
-            json.dump(staff_database, file, indent=4)
+    allowed_roles = {1302761965277544448, 1108029461967945850, 1309883023008989265}
+    if any(role.id in allowed_roles for role in interaction.user.roles):
+        try:
+            with open(STAFF_DATABASE_FILE, 'r+') as file:
+                staff_database = json.load(file)
+                staff_database = [member for member in staff_database if member["Username"] != str(user)]
+                file.seek(0)
+                file.truncate()
+                json.dump(staff_database, file, indent=4)
 
-        embed = nextcord.Embed(title="<:CD_Red:1108401228720918538> Staff Member Removed", color=0xff913a)
-        embed.add_field(name="<:CD_member:1337489055889227876> Username", value=user.mention, inline=False)
-        embed.set_image(url="https://media.discordapp.net/attachments/1307830607262384128/1308444839905595392/Sin_titulo_50_x_8_in_4.png?ex=6791aef7&is=67905d77&hm=a7d9123dc9d275e26f2debd9543d04d01847210112577da4afedd3652f3c088c&=&format=webp&quality=lossless&width=1439&height=173")
+            embed = nextcord.Embed(title="<:CD_Red:1108401228720918538> Staff Member Removed", color=0xff913a)
+            embed.add_field(name="<:CD_member:1337489055889227876> Username", value=user.mention, inline=False)
+            embed.set_image(url="https://media.discordapp.net/attachments/1307830607262384128/1308444839905595392/Sin_titulo_50_x_8_in_4.png?ex=6791aef7&is=67905d77&hm=a7d9123dc9d275e26f2debd9543d04d01847210112577da4afedd3652f3c088c&=&format=webp&quality=lossless&width=1439&height=173")
 
-        await interaction.response.send_message(embed=embed, ephemeral=False)
-    except Exception as e:
-        logging.error(f"Error in remove_staff command: {e}")
-        await interaction.response.send_message("An error occurred while removing the staff member.", ephemeral=False)
+            await interaction.response.send_message(embed=embed, ephemeral=False)
+        except Exception as e:
+            logging.error(f"Error in remove_staff command: {e}")
+            await interaction.response.send_message("An error occurred while removing the staff member.", ephemeral=False)
+    else:
+        await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
 # ==========================================================================
 
 
