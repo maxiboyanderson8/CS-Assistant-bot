@@ -719,12 +719,15 @@ def fetch_group_roles(group_id):
 
 # VIEW STAFF SLASH COMMAND --------------------------------------------------------------------------------
 @client.slash_command(guild_ids=[GUILD_ID], description="View staff member information")
-@commands.has_role("Executive Board")
-@commands.has_role("Member")
 async def view_staff(
     interaction: Interaction,
     user: nextcord.Member = SlashOption(description="User to view", required=False)
 ):
+    allowed_roles = [1302761965277544448, 1021894722647752784]
+    if not any(role.id in allowed_roles for role in interaction.user.roles):
+        await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
+        return
+
     try:
         with open(STAFF_DATABASE_FILE, 'r') as file:
             staff_database = json.load(file)
@@ -739,7 +742,7 @@ async def view_staff(
                 embed.add_field(name="<:CD_bag:1310235389126115349> Category", value=staff_member["Category"], inline=False)
                 embed.add_field(name="<:CD_dot:1310207495691567145> Date of Joining", value=staff_member["Date of Joining"], inline=False)
                 embed.add_field(name="<:CD_dot:1310207495691567145> Group Status", value=group_status, inline=False)
-                embed.set_image(url="https://media.discordapp.net/attachments/1307830607262384128/1308444839905595392/Sin_titulo_50_x_8_in_4.png?ex=6791aef7&is=67905d77&hm=a7d9123dc9d275e26f2debd9543d04d01847210112577da4afedd3652f3c088c&=&format=webp&quality=lossless&width=1439&height=173")
+                embed.set_image(url="https://media.discordapp.net/attachments/1307830607262384128/1308444839905595392/Sin_titulo_50_x_8_in_4.png")
                 await interaction.response.send_message(embed=embed, ephemeral=False)
             else:
                 await interaction.response.send_message("Staff member not found.", ephemeral=False)
@@ -747,25 +750,37 @@ async def view_staff(
             embed = nextcord.Embed(title="<:CD_info:1310234839982674014> List of Staff", color=0xff913a)
             for member in staff_database:
                 group_status = check_group_status(member["Roblox Username"])
-                embed.add_field(name=f"<:CD_member:1337489055889227876> {member['Username']}", value=f"<:CD_dot:1310207495691567145> Roblox Username: {member['Roblox Username']}\n<:CD_dot:1310207495691567145> Category: {member['Category']}\n<:CD_dot:1310207495691567145> Date of Joining: {member['Date of Joining']}\n<:CD_dot:1310207495691567145> Group Status: {group_status}", inline=False)
-            embed.set_image(url="https://media.discordapp.net/attachments/1307830607262384128/1308444839905595392/Sin_titulo_50_x_8_in_4.png?ex=6791aef7&is=67905d77&hm=a7d9123dc9d275e26f2debd9543d04d01847210112577da4afedd3652f3c088c&=&format=webp&quality=lossless&width=1439&height=173")
+                embed.add_field(
+                    name=f"<:CD_member:1337489055889227876> {member['Username']}",
+                    value=(
+                        f"<:CD_dot:1310207495691567145> Roblox Username: {member['Roblox Username']}\n"
+                        f"<:CD_dot:1310207495691567145> Category: {member['Category']}\n"
+                        f"<:CD_dot:1310207495691567145> Date of Joining: {member['Date of Joining']}\n"
+                        f"<:CD_dot:1310207495691567145> Group Status: {group_status}"
+                    ),
+                    inline=False
+                )
+            embed.set_image(url="https://media.discordapp.net/attachments/1307830607262384128/1308444839905595392/Sin_titulo_50_x_8_in_4.png")
             await interaction.response.send_message(embed=embed, ephemeral=False)
     except Exception as e:
         logging.error(f"Error in view_staff command: {e}")
         await interaction.response.send_message("An error occurred while viewing the staff members.", ephemeral=False)
-
 
 # Define the channel ID where rank requests will be sent
 RANK_REQUEST_CHANNEL_ID = 1067736199453753394
 
 # RANK REQUEST SLASH COMMAND --------------------------------------------------------------------------------
 @client.slash_command(guild_ids=[GUILD_ID], description="Submit a rank request")
-@commands.has_role("Staff Team")
 async def rank_request(
     interaction: Interaction,
     roblox_username: str = SlashOption(description="The Roblox username", required=True),
     rank_requesting: str = SlashOption(description="The rank you are requesting", required=True, choices=fetch_group_roles(16394588))
 ):
+    allowed_roles = [1306395336163463170]
+    if not any(role.id in allowed_roles for role in interaction.user.roles):
+        await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
+        return
+
     try:
         if not roblox_username or not rank_requesting:
             await interaction.response.send_message("Both Roblox Username and Rank Requesting are required.", ephemeral=True)
@@ -775,7 +790,7 @@ async def rank_request(
         embed.add_field(name="<:CD_member:1337489055889227876> Discord User", value=f"{interaction.user} ({interaction.user.id})", inline=False)
         embed.add_field(name="<:CD_dot:1310207495691567145> Roblox Username", value=roblox_username, inline=False)
         embed.add_field(name="<:CD_dot:1310207495691567145> Rank Requesting", value=rank_requesting, inline=False)
-        embed.set_image(url="https://media.discordapp.net/attachments/1307830607262384128/1308444839905595392/Sin_titulo_50_x_8_in_4.png?ex=6791aef7&is=67905d77&hm=a7d9123dc9d275e26f2debd9543d04d01847210112577da4afedd3652f3c088c&=&format=webp&quality=lossless&width=1439&height=173")
+        embed.set_image(url="https://media.discordapp.net/attachments/1307830607262384128/1308444839905595392/Sin_titulo_50_x_8_in_4.png")
         embed.set_footer(text=f"Requested at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         channel = client.get_channel(RANK_REQUEST_CHANNEL_ID)
@@ -787,93 +802,5 @@ async def rank_request(
     except Exception as e:
         logging.error(f"Error in rank_request command: {e}")
         await interaction.response.send_message("An error occurred while submitting your rank request.", ephemeral=True)
-
-# QUALITY CONTROL SLASH COMMAND --------------------------------------------------------------------------------
-@client.slash_command(guild_ids=[GUILD_ID], description="Submit a quality control request")
-async def quality_control(
-    interaction: Interaction,
-    order_channel: nextcord.TextChannel = SlashOption(description="Order Channel", required=True),
-    slot_1: Attachment = SlashOption(description="Image file - Name: Slot 1", required=True),
-    slot_2: Attachment = SlashOption(description="Image file - Name: Slot 2", required=False),
-    slot_3: Attachment = SlashOption(description="Image file - Name: Slot 3", required=False),
-    slot_4: Attachment = SlashOption(description="Image file - Name: Slot 4", required=False),
-    slot_5: Attachment = SlashOption(description="Image file - Name: Slot 5", required=False),
-    others: Attachment = SlashOption(description="File - Name: Others", required=False)
-):
-    if 1306395336163463170 not in [role.id for role in interaction.user.roles]:
-        await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
-        return
-
-    try:
-        # Define the quality channel
-        quality_channel = client.get_channel(QUALITY_CHANNEL_ID)
-
-        # Create the main embed
-        embed = nextcord.Embed(title="Order Information", color=0xff913a)
-        embed.add_field(name="Designer", value=f"<@{interaction.user.id}>", inline=False)
-        embed.add_field(name="Order Channel", value=f"{order_channel.mention}", inline=False)
-        embed.set_image(url="https://media.discordapp.net/attachments/1110779991626629252/1312520876239097876/Sin_titulo_72_x_9_in_72_x_5_in_1_1.png?ex=67a32612&is=67a1d492&hm=517eeaa3aa8d1dcab5912ee8d9c8d8d4d31e5ec7d82757790414516b3bf0a16f&=&format=webp&quality=lossless&width=1439&height=100")
-
-        # Send the main embed
-        await quality_channel.send(embed=embed)
-
-        # Create and send additional embeds for each slot
-        files = [slot_1, slot_2, slot_3, slot_4, slot_5, others]
-        last_message = None
-        for i, file in enumerate(files):
-            if file:
-                file_embed = nextcord.Embed(title=f"Product View {i + 1}", color=0xff913a)
-                file_embed.set_image(url=file.url)
-                last_message = await quality_channel.send(embed=file_embed)
-
-        # Create buttons
-        button_accepted = Button(label="Accepted", style=ButtonStyle.grey)
-        button_denied = Button(label="Denied", style=ButtonStyle.grey)
-
-        async def accepted_callback(interaction: Interaction):
-            if QUALITY_CONTROL_ID not in [role.id for role in interaction.user.roles]:
-                await interaction.response.send_message("You do not have permission to use this button.", ephemeral=True)
-                return
-            await interaction.user.send(f"Your design has passed the quality check, <@{interaction.user.id}>.")
-            await interaction.response.send_message("The design has been accepted.", ephemeral=True)
-
-        async def denied_callback(interaction: Interaction):
-            if QUALITY_CONTROL_ID not in [role.id for role in interaction.user.roles]:
-                await interaction.response.send_message("You do not have permission to use this button.", ephemeral=True)
-                return
-
-            class DenyReasonModal(Modal):
-                def __init__(self):
-                    super().__init__(title="Deny Reason")
-                    self.add_item(TextInput(label="Reason", placeholder="Enter the reason for denial", required=True))
-
-                async def callback(self, interaction: Interaction):
-                    reason = self.children[0].value
-                    embed = nextcord.Embed(title="Design Denied", color=0xff0000)
-                    embed.add_field(name="Reason", value=reason, inline=False)
-                    await interaction.user.send(embed=embed)
-                    await interaction.response.send_message("The design has been denied.", ephemeral=True)
-
-            await interaction.response.send_modal(DenyReasonModal())
-
-        button_accepted.callback = accepted_callback
-        button_denied.callback = denied_callback
-
-        view = View()
-        view.add_item(button_accepted)
-        view.add_item(button_denied)
-
-        # Attach buttons to the last embed sent
-        if last_message:
-            await last_message.edit(view=view)
-        else:
-            # If no additional embeds were sent, attach buttons to the main embed
-            await quality_channel.send(content="<@&1082364871695413252>", view=view)
-
-        await interaction.response.send_message("Quality control request submitted.", ephemeral=True)
-    except Exception as e:
-        logging.error(f"Error in quality_control command: {e}")
-        await interaction.response.send_message("An error occurred while submitting the quality control request.", ephemeral=True)
-
-
+        
 client.run(TOKEN)
