@@ -14,6 +14,7 @@ from nextcord.utils import get
 from apis import *
 import random
 from datetime import datetime
+TOKEN = os.getenv("TOKEN")
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
