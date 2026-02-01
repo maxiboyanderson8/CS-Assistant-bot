@@ -1,4 +1,4 @@
-import nextcord
+import os
 from nextcord.ext import commands
 from nextcord import Interaction, SlashOption, Attachment, ButtonStyle
 from nextcord.utils import get
@@ -802,4 +802,4 @@ async def rank_request(
         logging.error(f"Error in rank_request command: {e}")
         await interaction.response.send_message("An error occurred while submitting your rank request.", ephemeral=True)
         
-client.run(TOKEN)
+client.run(os.getenv('TOKEN'))
