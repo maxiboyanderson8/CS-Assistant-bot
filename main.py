@@ -19,12 +19,12 @@ TOKEN = os.getenv("TOKEN")
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
-SUPPORTERS_ID = 1309911584457494588  # Replace with your supporters channel ID
-GUILD_ID = 1021619736292904971
-ORDER_LOG_CHANNEL_ID = 1063248635288113202  # Replace with your order logs channel ID
-SUPPORT_LOG_CHANNEL_ID = 1195278351665991760  # Replace with your support logs channel ID
+SUPPORTERS_ID = 1340663606848655450  # Replace with your supporters channel ID
+GUILD_ID = 1337176811356028960
+ORDER_LOG_CHANNEL_ID = 1337176812735692816  # Replace with your order logs channel ID
+SUPPORT_LOG_CHANNEL_ID = 1467630775225548903  # Replace with your support logs channel ID
 LOUNGE_ID = 1021619738306162690
-REVIEWS_ID = 1309911036123414609  # Replace with your reviews channel ID
+REVIEWS_ID = 1337205475745464431  # Replace with your reviews channel ID
 PROMOTION_ID = 1309857031087329391
 INFRACTION_ID = 1309857105745936515
 
@@ -803,4 +803,5 @@ async def rank_request(
         await interaction.response.send_message("An error occurred while submitting your rank request.", ephemeral=True)
         
 client.run("1392989220133408820")
+
 
