@@ -802,4 +802,5 @@ async def rank_request(
         logging.error(f"Error in rank_request command: {e}")
         await interaction.response.send_message("An error occurred while submitting your rank request.", ephemeral=True)
         
-client.run(os.getenv('TOKEN'))
+client.run("1392989220133408820")
+
