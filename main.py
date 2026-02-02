@@ -131,5 +131,6 @@ async def review(
         embed.set_image(url="https://media.discordapp.net/attachments/1110779991626629252/1312520876239097876/Sin_titulo_72_x_9_in_72_x_5_in_1_1.png?ex=674ccbd2&is=674b7a52&hm=f6228f89e71982bdbcd236455249a0f0fba8796855434204803f0d108e8c7157&=&format=webp&quality=lossless&width=1439&height=100")
         embed.add_field(name="**<:CD_dot:1310207495691567145> Designer:**", value=designer.mention, inline=True)
         embed.add_field(name="**<:CD_dot:1310207495691567145> Product:**", value=product, inline=True)
-        embed.add_field(name="**<:CD_dot:1310207495691567145> Rating:**", value="".join(["<:CD_Star:13374891
+        embed.add_field(name="**<:CD_dot:1310207495691567145> Rating:**", value="".join(["<:CD_Star:1337489151154454529>"] *
         client.run(1392989220133408820)
+
