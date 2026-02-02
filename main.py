@@ -803,5 +803,3 @@ async def rank_request(
         await interaction.response.send_message("An error occurred while submitting your rank request.", ephemeral=True)
         
 client.run("1392989220133408820")
-
-
