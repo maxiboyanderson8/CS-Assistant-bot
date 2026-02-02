@@ -1,4 +1,4 @@
-import nextcord
+import os
 from nextcord.ext import commands
 from nextcord import Interaction, SlashOption, Attachment, ButtonStyle
 from nextcord.utils import get
@@ -19,12 +19,12 @@ TOKEN = os.getenv("TOKEN")
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
-SUPPORTERS_ID = 1309911584457494588  # Replace with your supporters channel ID
-GUILD_ID = 1021619736292904971
-ORDER_LOG_CHANNEL_ID = 1063248635288113202  # Replace with your order logs channel ID
-SUPPORT_LOG_CHANNEL_ID = 1195278351665991760  # Replace with your support logs channel ID
+SUPPORTERS_ID = 1340663606848655450  # Replace with your supporters channel ID
+GUILD_ID = 1337176811356028960
+ORDER_LOG_CHANNEL_ID = 1337176812735692816  # Replace with your order logs channel ID
+SUPPORT_LOG_CHANNEL_ID = 1467630775225548903  # Replace with your support logs channel ID
 LOUNGE_ID = 1021619738306162690
-REVIEWS_ID = 1309911036123414609  # Replace with your reviews channel ID
+REVIEWS_ID = 1337205475745464431  # Replace with your reviews channel ID
 PROMOTION_ID = 1309857031087329391
 INFRACTION_ID = 1309857105745936515
 
@@ -129,8 +129,7 @@ async def review(
         embed.add_field(name="**<:CD_dot:1310207495691567145> Product:**", value=product, inline=True)
         embed.add_field(name="**<:CD_dot:1310207495691567145> Rating:**", value="".join(["<:CD_Star:1337489151154454529>"] * rating), inline=True)
         embed.add_field(name="**<:CD_dot:1310207495691567145> Extra Notes:**", value=extra_notes, inline=False)
-        embed.set_footer(text="Thank you for your review", icon_url="https://media.discordapp.net/attachments/1307830343482478725/1307837864914059314/CDLOGO_MGMT_BLACK.png?ex=674c3d2d&is=674aebad&hm=f3b757b37d41bcb9d68f8c408fe55c800b84cb6e3b6bd841a118045435bc51da&=&format=webp&quality=lossless&width=481&height=481")
-        embed.timestamp = interaction.created_at
+        embed.set_footer(text="Thank you for your review", icon_url="https://media.discordapp.net/attachments/1307830343482478725/
 
         review_channel = client.get_channel(REVIEWS_ID)
         if review_channel:
@@ -766,3 +765,4 @@ async def rank_request(
         await interaction.response.send_message("An error occurred while submitting your rank request.", ephemeral=True)
         
 client.run(1392989220133408820)
+
